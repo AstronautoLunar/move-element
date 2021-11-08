@@ -14,8 +14,14 @@ class ElementInterface {
 			element.classList.add(classElement);
 		}
 
+		const exitElementCreated = window.document.createElement("div");
+		exitElementCreated.classList.add("exit-radius");
+
+		this._exitElement = exitElementCreated;
 		this._element = element;
 		this._elementFather = elementFather;
+		this._localization = {};
+		this._dataElement = {};
 	}
 
 	get element() {
@@ -24,6 +30,26 @@ class ElementInterface {
 
 	get elementFather() {
 		return this._elementFather;
+	}
+
+	set localization(value) {
+		this._localization = value;
+	}
+
+	get localization() {
+		return this._localization;
+	}
+
+	set dataElement(value) {
+		this._dataElement = value;
+	}
+
+	get dataElement() {
+		return this._dataElement;
+	}
+
+	get exitElement() {
+		return this._exitElement;
 	}
 
 	render() {
@@ -97,7 +123,9 @@ class ElementInterface {
 	moveElement({
 		action = {}
 	}) {
-		this.element.addEventListener('click', ({ target }) => {
+		
+
+		const eventClick = ({ target }) => {
 			target.classList.toggle("selected");
 
 			const verifySelectedTarget = target.classList.contains("selected");
@@ -107,21 +135,79 @@ class ElementInterface {
 			} else {
 				action.off(this.element);
 			}
-		})
+		}
 
-		this.element.addEventListener('mousemove', ({ 
+		const eventMouseMove = ({ 
 			target, 
 			pageX, 
 			pageY 
 		}) => {
 			const verifySelectedTarget = target.classList.contains("selected");
-			const centerWidthTarget = Number(target.style.width.split("px")[0]) / 2;
-	
+			let widthElement = Number(target.style.width.split("px")[0]);
+			let heightElement = Number(target.style.height.split("px")[0]);
+			let centerWidthTarget = widthElement / 2;
+			let centerHeightTarget = heightElement / 2;
+			
+			this.dataElement = {
+				widthElement,
+				heightElement,
+				centerWidthTarget,
+				centerHeightTarget
+			}
+
 			if(verifySelectedTarget) {
 				target.style.position = "absolute";
 				target.style.left = `${pageX - centerWidthTarget}px`;
-				target.style.top = `${pageY - centerWidthTarget}px`;
+				target.style.top = `${pageY - centerHeightTarget}px`;
+				this.localization = {
+					x: pageX - centerWidthTarget,
+					y: pageY - centerHeightTarget
+				}
 			}
-		})
+		}
+
+		this.element.addEventListener('click', eventClick);
+		this.element.addEventListener('mousemove', eventMouseMove);
+
+		this.element.addEventListener("dblclick", ({ target }) => {
+			this.element.removeEventListener('mousemove', eventMouseMove);
+
+			target.classList.toggle("radiusSelected");
+			const verifyRadiusSelected = target.classList.contains("radiusSelected");
+
+			if(verifyRadiusSelected) {
+				let { x, y } = this.localization;
+				// let { widthElement, heightElement } = this.dataElement;
+
+				this.createElementExitForRadius({
+					x,
+					y
+				});
+
+				// target.addEventListener('mousemove', ({ offsetY }) => {
+				// 	console.log(offsetY);
+				// });
+
+			}
+		});
+
+		this.exitElement.addEventListener("click", () => {
+			window.document.body.removeChild(this.exitElement);
+
+			setTimeout(() => {
+				this.element.addEventListener("mousemove", eventMouseMove);
+			}, 500)
+		}, false);
+	}
+
+	createElementExitForRadius({
+			x, 
+			y 
+		}) {
+		this.exitElement.style.position = "absolute";
+		this.exitElement.style.top = `${y + 10}px`;
+		this.exitElement.style.left = `${x - 40}px`;
+
+		window.document.body.appendChild(this.exitElement);
 	}
 }
