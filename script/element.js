@@ -123,31 +123,18 @@ class ElementInterface {
 	moveElement({
 		action = {}
 	}) {
-		
-
-		const eventClick = ({ target }) => {
-			target.classList.toggle("selected");
-
-			const verifySelectedTarget = target.classList.contains("selected");
-
-			if(verifySelectedTarget) {
-				action.on(this.element);
-			} else {
-				action.off(this.element);
-			}
-		}
 
 		const eventMouseMove = ({ 
 			target, 
 			pageX, 
 			pageY 
 		}) => {
-			const verifySelectedTarget = target.classList.contains("selected");
+			
 			let widthElement = Number(target.style.width.split("px")[0]);
 			let heightElement = Number(target.style.height.split("px")[0]);
 			let centerWidthTarget = widthElement / 2;
 			let centerHeightTarget = heightElement / 2;
-			
+
 			this.dataElement = {
 				widthElement,
 				heightElement,
@@ -155,19 +142,44 @@ class ElementInterface {
 				centerHeightTarget
 			}
 
-			if(verifySelectedTarget) {
-				target.style.position = "absolute";
-				target.style.left = `${pageX - centerWidthTarget}px`;
-				target.style.top = `${pageY - centerHeightTarget}px`;
-				this.localization = {
-					x: pageX - centerWidthTarget,
-					y: pageY - centerHeightTarget
-				}
+			target.style.position = "absolute";
+			target.style.left = `${pageX - centerWidthTarget}px`;
+			target.style.top = `${pageY - centerHeightTarget}px`;
+			this.localization = {
+				x: pageX - centerWidthTarget,
+				y: pageY - centerHeightTarget
 			}
 		}
 
-		this.element.addEventListener('click', eventClick);
-		this.element.addEventListener('mousemove', eventMouseMove);
+		function applyActionContainsClass({ target, valueClass }) {
+			const verifySelectedTarget = target.classList.contains(valueClass);
+
+			if(verifySelectedTarget) {
+				action.on(target);
+			} else {
+				action.off(target);
+			}
+		}
+
+		this.element.addEventListener("mousedown", ({ target }) => {
+			this.element.classList.add("selected");
+			this.element.addEventListener('mousemove', eventMouseMove);
+
+			applyActionContainsClass({
+				target,
+				valueClass: "selected"
+			});
+		});
+
+		this.element.addEventListener("mouseup", ({ target }) => {
+			this.element.classList.remove("selected");
+			this.element.removeEventListener('mousemove', eventMouseMove);
+
+			applyActionContainsClass({
+				target,
+				valueClass: "selected"
+			});
+		})
 
 		this.element.addEventListener("dblclick", ({ target }) => {
 			this.element.removeEventListener('mousemove', eventMouseMove);
