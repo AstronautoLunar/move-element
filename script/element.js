@@ -161,54 +161,52 @@ class ElementInterface {
 			}
 		}
 
-		this.element.addEventListener("mousedown", ({ target }) => {
-			this.element.classList.add("selected");
-			this.element.addEventListener('mousemove', eventMouseMove);
+		function eventMouseDown({ target }) {
+			target.classList.add("selected");
+			target.addEventListener('mousemove', eventMouseMove);
 
 			applyActionContainsClass({
 				target,
 				valueClass: "selected"
 			});
-		});
+		}
 
-		this.element.addEventListener("mouseup", ({ target }) => {
-			this.element.classList.remove("selected");
-			this.element.removeEventListener('mousemove', eventMouseMove);
+		function eventMouseUp({ target }) {
+			target.classList.remove("selected");
+			target.removeEventListener('mousemove', eventMouseMove);
 
 			applyActionContainsClass({
 				target,
 				valueClass: "selected"
 			});
-		})
+		}
+
+		function actionContainsExit({ target, valueClass }) {
+			return new Promise((resolve, reject) => {
+
+			})
+		}
+
+		this.element.addEventListener("mousedown", eventMouseDown);
+		this.element.addEventListener("mouseup", eventMouseUp)
 
 		this.element.addEventListener("dblclick", ({ target }) => {
-			this.element.removeEventListener('mousemove', eventMouseMove);
+			target.removeEventListener('mousemove', eventMouseMove);
 
 			target.classList.toggle("radiusSelected");
 			const verifyRadiusSelected = target.classList.contains("radiusSelected");
 
 			if(verifyRadiusSelected) {
 				let { x, y } = this.localization;
-				// let { widthElement, heightElement } = this.dataElement;
-
 				this.createElementExitForRadius({
 					x,
 					y
 				});
-
-				// target.addEventListener('mousemove', ({ offsetY }) => {
-				// 	console.log(offsetY);
-				// });
-
 			}
 		});
 
 		this.exitElement.addEventListener("click", () => {
 			window.document.body.removeChild(this.exitElement);
-
-			setTimeout(() => {
-				this.element.addEventListener("mousemove", eventMouseMove);
-			}, 500)
 		}, false);
 	}
 
